@@ -15,4 +15,3 @@ deploy:
     skip_cleanup: true
     script:
     - curl -T Build/yamr-*.$TRAVIS_BUILD_NUMBER-Linux.deb -utatyana-otus:$BINTRAY_API_KEY "https://api.bintray.com/content/tatyana-otus/hw_otus/yamr/$TRAVIS_BUILD_NUMBER/yamr-1.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
- 
