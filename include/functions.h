@@ -24,6 +24,7 @@ auto reduce(contaner_t list_in)
 
     auto it = list_in.begin();
 
+    size_t ln = 0;
     while(it != std::end(list_in)){
         auto it_next = std::find_if(it, std::end(list_in), [&it](const auto & s)
                                                            {
@@ -36,11 +37,14 @@ auto reduce(contaner_t list_in)
                                     {
                                         return (s.compare(0, it->length(), *it) != 0); 
                                     });
-            list_out.push_back(std::move(*it));
+            if(it->length() > ln){
+                ln = it->length();
+            }
         }
         it = it_next;
     } 
 
+    list_out.push_back(std::to_string(ln));
     return list_out;
 }
 
