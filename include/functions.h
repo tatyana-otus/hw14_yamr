@@ -3,50 +3,52 @@
 
 #include "map_reduce.h"
 
-
-auto map(std::string s)
+class Map
 {
-    contaner_t list;   
 
-    std::generate_n(std::back_inserter(list), s.size(),
-                    [&s, idx = 1] () mutable 
-                    {
-                        return s.substr(0, idx++);
-                    });    
+public:
+    auto operator()(std::string s)
+    {
+        contaner_t list;   
 
-    return list;
-}
+        std::generate_n(std::back_inserter(list), s.size(),
+                        [&s, idx = 1] () mutable 
+                        {
+                            return s.substr(0, idx++);
+                        });    
 
-
-auto reduce(contaner_t list_in)
-{
-    contaner_t list_out;
-
-    auto it = list_in.begin();
-
-    size_t ln = 0;
-    while(it != std::end(list_in)){
-        auto it_next = std::find_if(it, std::end(list_in), [&it](const auto & s)
-                                                           {
-                                                                return s != *it;
-                                                            });
-        if(std::distance(it, it_next) == 1){
-            it_next = std::find_if(std::next(it), 
-                                    std::end(list_in), 
-                                    [&it](const auto & s)
-                                    {
-                                        return (s.compare(0, it->length(), *it) != 0); 
-                                    });
-            if(it->length() > ln){
-                ln = it->length();
-            }
-        }
-        it = it_next;
+        return list;
     } 
+};
 
-    list_out.push_back(std::to_string(ln));
-    return list_out;
-}
+
+class Reduce
+{
+    size_t ln;
+    bool   is_eq;
+    std::string s_prv;
+
+public:
+    Reduce():ln(1), is_eq(false), s_prv(" ") {}
+    
+    auto operator()(std::string s)
+    {
+        contaner_t list_out;
+
+        if(s_prv == s)
+            is_eq = true;
+        else {
+            auto prefix = s.compare(0, s_prv.length(), s_prv) != 0;
+            if(s.length() > ln && (is_eq || (!is_eq && prefix)))
+                ln = s.length();
+            is_eq = false;
+            s_prv = s;
+        }
+               
+        list_out.push_back(std::to_string(ln));
+        return list_out;
+    }    
+};
 
 
 void process(const char* file_arg, const char* mnum_arg, const char* rnum_arg)
@@ -80,7 +82,7 @@ void process(const char* file_arg, const char* mnum_arg, const char* rnum_arg)
     catch(const std::exception &e) {
         throw std::invalid_argument("Invalid <rnum>");
     } 
-    
-    map_reduce framework(map, reduce, file_arg, mnum, rnum);
+
+    map_reduce<Map, Reduce> framework(file_arg, mnum, rnum);
     framework.run();
 }

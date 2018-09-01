@@ -10,20 +10,14 @@
 
 using contaner_t = std::list<std::string>;
 
-using map_func_t    = const std::function<contaner_t(std::string)>;
-using reduce_func_t = const std::function<contaner_t(contaner_t)>;
-
+template<class M, class R>
 class map_reduce
 {
 public:
-    map_reduce(map_func_t& map_func_, 
-               reduce_func_t& reduce_func_,
-               std::string f_name_, 
+    map_reduce(std::string f_name_, 
                size_t mapper_cnt_, 
                size_t reducer_cnt_)
-    :map_func(map_func_),
-    reduce_func(reduce_func_),
-    f_name(f_name_),
+    :f_name(f_name_),
     mapper_cnt(mapper_cnt_),
     reducer_cnt(reducer_cnt_)
     {
@@ -102,7 +96,12 @@ private:
     {
         try
         {
-            auto res = reduce_func(reduce_in[th_idx]);
+            R func;
+
+            contaner_t res;
+            for(const auto & s : reduce_in[th_idx]){
+                res = func(s);
+            }
            
             std::string name = "red_out_" + std::to_string(th_idx);
             std::ofstream ofs(name);
@@ -145,6 +144,8 @@ private:
     {
         try
         {
+            M func;
+
             std::ifstream ifs(f_name);
             if (!ifs.is_open()) {
                 throw std::invalid_argument("File could not be opened");
@@ -163,10 +164,7 @@ private:
             while (std::getline(iss, line))
             {
                 if(!line.empty()){
-                    map_result[th_idx].splice(map_result[th_idx].end(), map_func(line));
-                    //auto res = map_func(line);
-                    //res.sort();
-                    //map_result[th_idx].merge(std::move(res));
+                    map_result[th_idx].splice(map_result[th_idx].end(), func(line));
                 }    
             }
             map_result[th_idx].sort();
@@ -192,9 +190,6 @@ private:
             t.join();
         }
     }
-
-    map_func_t&    map_func;
-    reduce_func_t& reduce_func;
 
     std::string f_name;
 

@@ -10,7 +10,7 @@ BOOST_AUTO_TEST_SUITE(test_suite_main_1)
 
 void check(std::string file_name, int m, int r, int expected_res)
 {
-    std::system("rm -f  red_out*");
+    std::system("rm -f  red_*");
 
     std::string res;
 
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(test_1)
   
     check("test_in", 1, 1,  4);
     check("test_in", 2, 1,  4);
-    check("test_in", 4, 1,  4);
+    check("test_in", 4, 2,  4);
     check("test_in", 4, 4,  4);
     check("test_in", 4, 30, 4);
 }
@@ -72,6 +72,7 @@ BOOST_AUTO_TEST_CASE(test_2)
     std::system("cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 2000 >> test_in");
     std::system("echo \"1234567890\" >> test_in");
   
+    check("test_in", 1,   1,  10);
     check("test_in", 5,   5,  10);
     check("test_in", 10,  10, 10);
     check("test_in", 100, 20, 10);
