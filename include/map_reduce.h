@@ -8,7 +8,7 @@
 #include <thread>
 #include <mutex>
 
-using contaner_t = std::list<std::string>;
+using contaner_t = std::vector<std::string>;
 
 template<class M, class R>
 class map_reduce
@@ -164,10 +164,15 @@ private:
             while (std::getline(iss, line))
             {
                 if(!line.empty()){
-                    map_result[th_idx].splice(map_result[th_idx].end(), func(line));
+                    auto res = func(line);
+                    map_result[th_idx].insert(
+                                  map_result[th_idx].end(),
+                                  std::make_move_iterator(res.begin()),
+                                  std::make_move_iterator(res.end())
+                                );
                 }    
             }
-            map_result[th_idx].sort();
+            std::sort(map_result[th_idx].begin(), map_result[th_idx].end());
         }
         catch(const std::exception &e){
             std::cerr << e.what() << std::endl;
