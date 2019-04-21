@@ -9,44 +9,29 @@ class Map
 public:
     auto operator()(std::string s)
     {
-        contaner_t list;   
-
-        std::generate_n(std::back_inserter(list), s.size(),
-                        [&s, idx = 1] () mutable 
-                        {
-                            return s.substr(0, idx++);
-                        });    
-
-        return list;
+        return contaner_t{s};
     } 
 };
 
 
 class Reduce
 {
-    size_t ln;
-    bool   is_eq;
+    size_t max_prefix;
     std::string s_prv;
 
 public:
-    Reduce():ln(1), is_eq(false), s_prv(" ") {}
+    Reduce():max_prefix(1), s_prv(" ") {}
     
     auto operator()(std::string s)
     {
-        contaner_t list_out;
-
-        if(s_prv == s)
-            is_eq = true;
-        else {
-            auto prefix = s.compare(0, s_prv.length(), s_prv) != 0;
-            if(s.length() > ln && (is_eq || (!is_eq && prefix)))
-                ln = s.length();
-            is_eq = false;
-            s_prv = s;
+        size_t prefix = std::distance(s.cbegin(),
+                                      std::mismatch(s.cbegin(), s.cend(),
+                                                    s_prv.cbegin(), s_prv.cend()).first);
+        if (prefix + 1 > max_prefix){
+            max_prefix = prefix + 1;
         }
-               
-        list_out.push_back(std::to_string(ln));
-        return list_out;
+        s_prv = s;
+        return contaner_t{std::to_string(max_prefix)};
     }    
 };
 
